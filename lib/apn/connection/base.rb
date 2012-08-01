@@ -65,7 +65,11 @@ module APN
       def apn_production?
         @opts[:environment] && @opts[:environment] != '' && :production == @opts[:environment].to_sym
       end
-      
+
+      def pem_name
+        @opts[:application] ? "apn_#{@opts[:environment]}_#{@opts[:application]}.pem" : "apn_#{@opts[:environment]}.pem"
+      end
+
       # Get a fix on the .pem certificate we'll be using for SSL
       def setup_paths
         @opts[:environment] ||= ::Rails.env if defined?(::Rails.env)
@@ -75,11 +79,11 @@ module APN
           # Note that RAILS_ROOT is still here not from Rails, but to handle passing in root from sender_daemon
           @opts[:root_path] ||= defined?(::Rails.root) ? ::Rails.root.to_s : (defined?(RAILS_ROOT) ? RAILS_ROOT : '/')
           @opts[:cert_path] ||= File.join(File.expand_path(@opts[:root_path]), "config", "certs")
-          @opts[:cert_name] ||= apn_production? ? "apn_production.pem" : "apn_development.pem"
+          @opts[:cert_name] ||= pem_name 
 
           File.join(@opts[:cert_path], @opts[:cert_name])
         end
-        
+
         @apn_cert = File.read(cert_path) if File.exists?(cert_path)
         log_and_die("Please specify correct :full_cert_path. No apple push notification certificate found in: #{cert_path}") unless @apn_cert
       end
