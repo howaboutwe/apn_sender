@@ -12,11 +12,13 @@ module APN
       def initialize(opts = {})
         @opts = opts
 
+        type = @opts[:application] || :iphone
+
         setup_logger
         log(:info, "APN::Sender initializing. Establishing connections first...") if @opts[:verbose]
         setup_paths
 
-        super( APN::QUEUE_NAME ) if self.class.ancestors.include?(Resque::Worker)
+        super( APN::QUEUE_NAME_FOR[type.to_sym] ) if self.class.ancestors.include?(Resque::Worker)
       end
       
       # Lazy-connect the socket once we try to access it in some way

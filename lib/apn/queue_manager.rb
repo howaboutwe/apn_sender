@@ -6,13 +6,18 @@ module APN
   # Enqueues a notification to be sent in the background via the persistent TCP socket, assuming apn_sender is running (or will be soon)
   def self.notify(token, opts = {})
     token = token.to_s.gsub(/\W/, '')
-    APN::QueueManager.enqueue(APN::NotificationJob, token, opts)
+    type = opts[:application] || :iphone
+    APN::QueueManager.enqueue(APN::QUEUE_NAME_FOR[type.to_sym], APN::NotificationJob, token, opts)
   end  
   
   # Extends Resque, allowing us to add all the callbacks to Resque we desire without affecting the expected
   # functionality in the parent app, if we're included in e.g. a Rails application.
   class QueueManager
     extend Resque
+
+    def self.enqueue(queue, klass, token, opts)
+      enqueue_to(queue, klass, token, opts)
+    end
 
     def self.before_unregister_worker(&block)
       block ? (@before_unregister_worker = block) : @before_unregister_worker

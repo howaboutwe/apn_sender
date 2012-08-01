@@ -26,6 +26,9 @@ module APN
         opts.on('-e', '--environment=NAME', 'Specifies the environment to run this apn_sender under ([development]/production).') do |e|
           @options[:environment] = e
         end
+        opts.on('-a', '--application=NAME', 'Specifies the application to run apn_sender for ([development]/production).') do |a|
+          @options[:application] = a
+        end
         opts.on('--cert-path=NAME', 'Path to directory containing apn .pem certificates.') do |path|
           @options[:cert_path] = path
         end
@@ -56,7 +59,7 @@ module APN
   
     def daemonize
       @options[:worker_count].times do |worker_index|
-        process_name = @options[:worker_count] == 1 ? "apn_sender" : "apn_sender.#{worker_index}"
+        process_name = @options[:worker_count] == 1 ? "apn_sender_#{@options[:application]}" : "apn_sender.#{worker_index}"
         Daemons.run_proc(process_name, :dir => "#{::RAILS_ROOT}/tmp/pids", :dir_mode => :normal, :ARGV => @args) do |*args|
           run process_name
         end
